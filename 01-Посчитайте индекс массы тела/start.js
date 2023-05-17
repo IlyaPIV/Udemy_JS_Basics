@@ -18,3 +18,15 @@
 4. У кого индекс BMI больше?
 
 */
+const weigth1 = 72, height1 = 1.88,
+    weigth2 = 82, height2 = 1.73;
+
+function indexBody(w, h){
+    return w / (h ** 2);
+}
+
+console.log("Petr: " + indexBody(weigth1, height1));
+console.log("Denis: " + indexBody(weigth2, height2));
+
+console.log("index Petr > index Denis? " 
+            + (indexBody(weigth1, height1) > indexBody(weigth2, height2)));
