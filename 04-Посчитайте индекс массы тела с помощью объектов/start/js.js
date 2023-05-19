@@ -27,7 +27,8 @@
 */
 
 function bodyIndex(){
-    return this.weight / (this.height ** 2);
+    this.bmiRes = this.weight / (this.height ** 2);
+    return this.bmiRes;
 }
 
 const Petr = {
@@ -47,10 +48,10 @@ const Denis = {
 console.log(Petr.name + ":" + Petr.bodyIndex());
 console.log(Denis.name + ":" + Denis.bodyIndex());
 
-if (Petr.bodyIndex() === Denis.bodyIndex()){
+if (Petr.bmiRes === Denis.bmiRes){
     console.log("Индексы веса равны");
 } else {
-    console.log("Индекс веса больше у " + (Petr.bodyIndex()>Denis.bodyIndex() ? Petr.name : Denis.name));
+    console.log("Индекс веса больше у " + (Petr.bmiRes > Denis.bmiRes ? Petr.name : Denis.name));
 }
 
     

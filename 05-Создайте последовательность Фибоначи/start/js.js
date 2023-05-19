@@ -27,6 +27,34 @@
 */
 
 
-    
+function createFibonacci( size){
+    if (size == 0) {
+        return [0];
+    } else if (size == 1) {
+        return [ 0, 1];
+    } else {
+        let fib = [0, 1];
+        let prev2 = fib[0];
+        let prev1 = fib[1];
+        for (let i = 0; i < size - 2; i++){
+            fib.push(prev1 + prev2);
+
+            prev2 = fib[fib.length-2];
+            prev1 = fib[fib.length-1];
+
+        }
+        return fib;
+    }
+}
+
+console.log(createFibonacci(5));
+
+console.log(createFibonacci(8));
+
+console.log(createFibonacci(1));
+
+console.log(createFibonacci(12));
+
+console.log(createFibonacci(0));
 
 
