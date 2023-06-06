@@ -61,3 +61,40 @@ const game = {
     team2: 6.5,
   },
 };
+
+// let team1 = {};
+// let team2 = {};
+
+const [players1, players2] = game.players;
+// -1-
+// console.log("======= 1 =======");
+// team1.players = players1;
+// team2.players = players2;
+// console.log(team1);
+// console.log(team2);
+// -2-
+console.log("======= 2 =======");
+const [goalkeaper1, ...fieldPlayers1] = players1;
+const [goalkeaper2, ...fieldPlayers2] = players2;
+// team1.goalkeaper = goalkeaper1;
+// team1.fieldPlayers = fieldPlayers1;
+// team2.goalkeaper = goalkeaper2;
+// team2.fieldPlayers = fieldPlayers2;
+
+// console.log(team1);
+// console.log(team2);
+// - 3 -
+console.log("======= 3 =======");
+const allPlayers = [...players1, ...players2];
+console.log(allPlayers);
+// - 4 -
+console.log("======= 4 =======");
+const withExtraPlayers = [...allPlayers, 'player1', 'player2', 'player3'];
+console.log(withExtraPlayers);
+// - 5 -
+console.log("======= 5 =======");
+const {odds: {team1, x: draw, team2}} = game;
+
+console.log('team1: ' + team1);
+console.log('x: ' + draw);
+console.log('team2: ' + team2);
