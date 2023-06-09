@@ -19,3 +19,19 @@ calculateAge
 delayedDeparture
 
 */
+document.querySelector(".btn").addEventListener('click', function (){
+    const inputText = document.querySelector(".text").value;
+    const inputWords = inputText.split("\n");
+    console.log(inputWords);
+    const outputText = document.querySelector(".output");
+    let output = "";
+    let isFirst = true;
+    inputWords.forEach(word => {
+        if (!isFirst) output += "\n";
+        const [left, right] = word.trim().toLocaleLowerCase().split("_");
+        output += left;
+        output += right[0].toLocaleUpperCase() + right.slice(1);
+        isFirst = false;
+    })
+    outputText.innerText = output;
+});
