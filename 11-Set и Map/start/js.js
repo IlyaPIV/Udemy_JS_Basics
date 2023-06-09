@@ -25,3 +25,25 @@ const gameEvents = new Map([
   [80, "⚽️ GOAL"],
   [92, "🔶 Yellow card"],
 ]);
+
+const uniqEvents = new Set(gameEvents.values());
+console.log(uniqEvents);
+
+gameEvents.delete(64);
+console.log(gameEvents);
+
+const numEvents = gameEvents.size;
+console.log(`Всего событий: ${numEvents}`);
+console.log(`Средняя частота: ${90 / numEvents} минут`);
+
+let firstTime = [];
+let secondTime = [];
+gameEvents.forEach((value, key) => {
+  if (key <= 45) {
+    firstTime.push(key + ": " + value);
+  } else {
+    secondTime.push(key + ": " + value);
+  }
+});
+console.log("Первый тайм: " + firstTime);
+console.log("Второй тайм: " + secondTime);
