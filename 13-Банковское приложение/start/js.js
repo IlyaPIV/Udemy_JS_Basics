@@ -53,11 +53,15 @@ const inputCloseUsername = document.querySelector(".form__input--user");
 const inputClosePin = document.querySelector(".form__input--pin");
 
 
-function displayTransactions(movements){
+// вывод блока с данными транзакции
+function displayTransactions(movements, sort = false){
     containerMovements.innerHTML = "";
-    movements.forEach(function (value, index) {
+
+    const movs = sort ? movements.slice().sort((a,b) => a-b) : movements;
+
+    movs.forEach(function (value, index) {
         const type = value > 0 ? "deposit" : "withdrawal";
-        const operation = value > 0 ? "СНЯТИЕ" : "ЗАЧИСЛЕНИЕ";
+        const operation = value < 0 ? "СНЯТИЕ" : "ЗАЧИСЛЕНИЕ";
         const htmlElem = `
       <div class="movements__row">
           <div class="movements__type movements__type--${type}">
@@ -70,8 +74,6 @@ function displayTransactions(movements){
         containerMovements.insertAdjacentHTML("afterbegin", htmlElem);
     });
 }
-
-displayTransactions(account1.movements);
 
 function createLogIn(accs){
     accs.forEach(acc => {
@@ -86,21 +88,132 @@ function createLogIn(accs){
 
 createLogIn(accounts);
 
-///////////
 
-// const arr = [5, 5, 5, 5];
-// const sum = arr.reduce(function (acc, val, key, arr){
-//    return  acc + val;
-// });
-// console.log(sum);
-
-
-function calculateBalance(movements){
-    console.log(movements);
-    const balance = movements.reduce(function (accumulation, val){
+// подсчёт итого баланса счёта после всех операций
+function calculateBalance(acc){
+    const balance = acc.movements.reduce(function (accumulation, val){
        return accumulation + val;
     });
+    acc.balance = balance;
     labelBalance.textContent = `${balance} ₽`;
 }
 
-calculateBalance(account1.movements);
+// подсчитывает сумму всех операций прихода или расхода
+function calcTransactionsSum(movements, incoming){
+    return movements.filter((mov) => incoming ? mov > 0 : mov < 0)
+                    .reduce((acc, mov) => acc + mov, 0);
+}
+
+// подсчет и вывод на страницу суммы оборотов денег
+function calcTransactions(movements){
+    const incSum = calcTransactionsSum(movements, true);
+    const outSum = calcTransactionsSum(movements, false);
+    const balanceSum = incSum + outSum;
+    labelSumIn.textContent = `${incSum}₽`;
+    labelSumOut.textContent = `${Math.abs(outSum)}₽`;
+    labelSumInterest.textContent = `${balanceSum}₽`;
+}
+
+// const acc = accounts.find(function (acc){
+//     return acc.owner === "Anna Filimonova";
+// });
+// console.log(acc);
+
+let currAccount;
+
+function updateUI(account){
+    displayTransactions(account.movements);
+    calculateBalance(account);
+    calcTransactions(account.movements);
+}
+
+btnLogin.addEventListener(`click`, function (event){
+    event.preventDefault();
+    currAccount = accounts.find(function (acc){
+       return acc.logIn === inputLoginUsername.value && acc.pin === Number(inputLoginPin.value);
+    });
+
+    console.log(currAccount);
+    if (currAccount){
+        containerApp.style.opacity = 100;
+        inputLoginPin.value = inputLoginUsername.value = "";
+
+        console.log("Pin OK");
+        updateUI(currAccount);
+    }
+});
+
+// перевод денег на другой счёт
+btnTransfer.addEventListener('click', function (event){
+    event.preventDefault();
+
+    const recieverAcc = accounts.find(function (acc){
+        return acc.logIn === inputTransferTo.value;
+    });
+    const amount = Number(inputTransferAmount.value);
+    console.log(amount, recieverAcc);
+
+    if (recieverAcc && amount > 0
+        && currAccount.balance >= amount
+        && recieverAcc.logIn !== currAccount.logIn) {
+
+        console.log("Платёж прошёл");
+        currAccount.movements.push(-amount);
+        recieverAcc.movements.push(amount);
+
+        updateUI(currAccount);
+        inputTransferTo.value = inputTransferAmount.value = "";
+    }
+});
+
+// обработчик закрытия аккаунта
+btnClose.addEventListener('click', function (event){
+    event.preventDefault();
+
+    if (inputCloseUsername.value === currAccount.logIn
+            && Number(inputClosePin.value) === currAccount.pin){
+        const index = accounts.findIndex(function (acc){
+            return acc.logIn === currAccount.logIn;
+        });
+        accounts.splice(index, 1);
+
+        containerApp.style.opacity = 0;
+        inputClosePin.value = inputCloseUsername.value = "";
+    } else {
+        console.log("Wrong credentials");
+    }
+});
+
+// пополнение денег на счету
+btnLoan.addEventListener('click', function (event){
+   event.preventDefault();
+
+   const amount = Number(inputLoanAmount.value);
+   if (amount > 0){
+       currAccount.movements.push(amount);
+       updateUI(currAccount);
+       inputLoanAmount.value = "";
+   }
+});
+
+
+const totalBalance = accounts.map((acc) => acc.movements)
+                                            .flat()
+                                            .reduce((acc, mov) => acc + mov, 0);
+console.log(totalBalance);
+
+
+let sorted = false;
+btnSort.addEventListener('click', function (event){
+   event.preventDefault();
+
+   displayMovements(currAccount.movements, !sorted);
+   sorted = !sorted;
+});
+
+
+labelBalance.addEventListener('click', function (){
+    Array.from(document.querySelectorAll(".movements__value"), function(val, i){
+        return val.innerText = val.textContent.replace("₽","RUB")
+    });
+})
