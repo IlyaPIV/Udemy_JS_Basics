@@ -47,10 +47,10 @@ const account3 = {
     "2019-11-30T09:48:16.867Z",
     "2019-12-25T06:04:23.907Z",
     "2020-01-25T14:18:46.235Z",
-    "2020-02-05T16:33:06.386Z",
-    "2020-04-10T14:43:26.374Z",
-    "2020-06-25T18:49:59.371Z",
-    "2020-07-26T12:01:20.894Z",
+    "2022-02-05T16:33:06.386Z",
+    "2023-06-16T14:43:26.374Z",
+    "2023-06-17T18:49:59.371Z",
+    "2023-06-18T12:01:20.894Z",
   ],
   currency: "EUR",
   locale: "es-PE",
@@ -100,21 +100,65 @@ const inputLoanAmount = document.querySelector(".form__input--loan-amount");
 const inputCloseUsername = document.querySelector(".form__input--user");
 const inputClosePin = document.querySelector(".form__input--pin");
 
-// Вывод на страницу всех приходов и уходов
-function displayMovements(movements, sort = false) {
-  containerMovements.innerHTML = "";
 
+
+function prepareDisplayDate(date, showHours){
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  const hours = `${date.getHours()}`.padStart(2, "0");
+  const mins = `${date.getMinutes()}`.padStart(2, "0");
+
+  if (showHours){
+    return `${day}/${month}/${year} ${hours}:${mins}`;
+  } else {
+    return `${day}/${month}/${year}`;
+  }
+}
+
+
+function formatMovementDate(date){
+  const calcDaysPassed = function (date1, date2){
+    return Math.round((date1 - date2) / (1000 * 60 * 60 * 24))
+  }
+
+  const daysPassed = calcDaysPassed(new Date(), date);
+  console.log(daysPassed);
+  if (daysPassed === 0) {
+    return "СЕГОДНЯ";
+  }
+  if (daysPassed === 1) {
+    return "ВЧЕРА";
+  }
+  if (daysPassed >= 2 && daysPassed <= 4){
+    return `${daysPassed} ДНЯ НАЗАД`
+  }
+  if (daysPassed <= 7) {
+    return `${daysPassed} ДНЕЙ НАЗАД`;
+  }
+
+  return prepareDisplayDate(date, false);
+}
+
+// Вывод на страницу всех приходов и уходов
+function displayMovements(acc, sort = false) {
+  containerMovements.innerHTML = "";
+  const movements = acc.movements;
   const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
 
   movs.forEach(function (value, i) {
     const type = value > 0 ? "deposit" : "withdrawal";
     const typeMessage = value > 0 ? "внесение" : "снятие";
+    const date = new Date(acc.movementsDates[i]);
+    //const transactionDate = prepareDisplayDate(date, true);
+    const transactionDate = formatMovementDate(date);
+
     const html = `
-    <div class="movements__row">
+        <div class="movements__row">
           <div class="movements__type movements__type--${type}">
             ${i + 1} ${typeMessage}
           </div>
-          <div class="movements__date">24/01/2037</div>
+          <div class="movements__date">${transactionDate}</div>
           <div class="movements__value">${value}₽</div>
         </div>
     `;
@@ -162,13 +206,36 @@ function calcDisplaySum(movements) {
 
 //Обновление интерфейса сайта
 function updateUi(acc) {
-  displayMovements(acc.movements);
+  displayMovements(acc);
   calcPrintBalance(acc);
   calcDisplaySum(acc.movements);
 }
 
+
+function startLogout(){
+  let time = 600;
+
+  function tick(){
+    const min = String(Math.trunc(time / 60)).padStart(2, "0");
+    const sec = String(time % 60).padStart(2, "0");
+    labelTimer.textContent = `${min}:${sec}`;
+
+    if (time === 0) {
+      clearInterval(timer);
+      containerApp.style.opacity = 0;
+    }
+    time--;
+  }
+
+  tick();
+  const timer = setInterval(tick, 1000);
+  return timer;
+}
+
 //Кнопка входа в аккаунт
 let currentAccount;
+let currentTimer;
+
 btnLogin.addEventListener("click", function (e) {
   e.preventDefault();
   console.log("Login");
@@ -183,6 +250,13 @@ btnLogin.addEventListener("click", function (e) {
 
     console.log("Pin ok");
     updateUi(currentAccount);
+    const now = new Date();
+    labelDate.textContent = prepareDisplayDate(now, true);
+
+    if (currentTimer) {
+      clearInterval(currentTimer);
+    }
+    currentTimer = startLogout();
   }
 });
 
@@ -201,7 +275,12 @@ btnTransfer.addEventListener("click", function (e) {
     reciveAcc.logIn !== currentAccount.logIn
   ) {
     currentAccount.movements.push(-amount);
+    currentAccount.movementsDates.push(new Date().toISOString());
     reciveAcc.movements.push(amount);
+    reciveAcc.movementsDates.push(new Date().toISOString());
+
+    clearInterval(currentTimer);
+    currentTimer = startLogout();
     updateUi(currentAccount);
     inputTransferTo.value = inputTransferAmount.value = "";
   }
@@ -231,6 +310,10 @@ btnLoan.addEventListener("click", function (e) {
   const amount = Number(inputLoanAmount.value);
   if (amount > 0) {
     currentAccount.movements.push(amount);
+    currentAccount.movementsDates.push(new Date().toISOString());
+
+    clearInterval(currentTimer);
+    currentTimer = startLogout();
     updateUi(currentAccount);
   }
   inputLoanAmount.value = "";
@@ -257,7 +340,7 @@ const overalBalance = accounts
 let sorted = false;
 btnSort.addEventListener("click", function (e) {
   e.preventDefault();
-  displayMovements(currentAccount.movements, !sorted);
+  displayMovements(currentAccount, !sorted);
   sorted = !sorted;
 });
 
@@ -267,3 +350,17 @@ labelBalance.addEventListener("click", function () {
     return (val.innerText = val.textContent.replace("₽", "RUB"));
   });
 });
+
+
+// const timeout = setTimeout(function (word1, word2){
+//   console.log(`${word1} = ${word2}`)
+// }, 10000, "Timeout", "10000 ms");
+// const interval = setInterval(function (word){
+//   console.log("Hello, " + word)
+// }, 2000, "interval 2s");
+// console.log("Hi");
+// setTimeout(function (){
+//   clearTimeout(timeout);
+//   clearInterval(interval);
+// }, 15000)
+
